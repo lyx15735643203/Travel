@@ -9,13 +9,13 @@ export default new Router({
   routes: [
     {
       // 首页
-      path: '/',
+      path: '/home',
       name: 'home',
       component:()=>import('@/pages/home/home')
     },
     {
       // 地图
-      path: '/map',
+      path: '/',
       name: 'map',
       component:  () => import('@/pages/map/map'),
     },
