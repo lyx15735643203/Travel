@@ -5,7 +5,8 @@
     </div>
     <div class="header-input">
        <span class="iconfont">&#xe614;</span>
-        输入城市/景点
+       <span>输入城市/景点</span>
+        
     </div>
     <div class="header-right">
       城市
@@ -25,9 +26,11 @@ export default {
 }
 </script>
 
-<style scoped >
-    .homeheader{height:34px;display:flex;background:#00bcd4;padding: 5px 0px;}
-    .header-left{width:50px;display:flex;align-items: center;justify-content: center;color: #fff;font-size: 15px;}
-    .header-input{flex:1;background:#fff;border-radius:4px;}
-    .header-right{width:60px;color: #fff;font-size: 15px;display: flex;align-items: center;justify-content: center;}
+<style scoped lang="stylus">
+    
+    .homeheader{height:35px;display:flex;background:#00bcd4;padding: 5px 0px;}
+    .header-left{width:30px;display:flex;align-items: center;color: #fff;font-size: 15px;}
+    .header-input{flex:1;background:#fff;border-radius:4px;padding: 0px 5px;font-size: 14px;display: flex;
+    align-items: center;color: #999;}
+    .header-right{width:60px;color: #fff;font-size: 14px;display: flex;align-items: center;justify-content: center;}
 </style>

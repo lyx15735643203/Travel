@@ -12,6 +12,12 @@ export default new Router({
       path: '/',
       name: 'home',
       component:()=>import('@/pages/home/home')
-    }
+    },
+    {
+      // 地图
+      path: '/map',
+      name: 'map',
+      component:  () => import('@/pages/map/map'),
+    },
   ]
 })
