@@ -12,35 +12,24 @@
             </div>
         </div>
         <!-- 搜索 -->
-        <div class="search">
-            <input type="text" v-model="address" ref="searchtext">
-            <button @click="search">搜索</button>
+        <div class="search" id="myPageTop">
+           <!-- <input type="text" v-model="address" ref="searchtext">
+            <button @click="search">搜索</button> -->
+            <table>
+                <tr>
+                    <td>
+                        <label>请输入关键字：</label>
+                    </td>
+                    <td>
+                        <input id="tipinput" ref="tipinput"/>
+                    </td>
+                </tr>
+            </table>
         </div>
         <!-- 地图容器 -->
         <div id="container" class="mymap" ref="container"></div>
-
-        <!-- 搜索信息面板 -->
-        <div id="panel" ref="panel" class="amap_lib_placeSearch">
-            <!-- <div class="amap_lib_placeSearch_list amap-pl-pc" v-for="(item,index) in poiArr" @click="openMarkerTipById1(index,$event)" @mouseout="onmouseout_MarkerStyle(index+1,$event)" :key="index"> -->
-                <!-- 每一条数据 -->
-               <!-- <div class="poibox" style="border-bottom: 1px solid #eaeaea;">
-                    <div class="amap_lib_placeSearch_poi poibox-icon" :class="index==selectedIndex?'selected':''">{{index+1}}</div>
-                    图片
-                    <div class="poi-img" v-if="item.url" :style="'background-image:url('+item.url+'?operate=merge&amp;w=90&amp;h=56&amp;position=5)'"></div>
-                    标题
-                    <h3 class="poi-title">
-                        <span class="poi-name">大厦</span>
-                    </h3>
-                    地址电话
-                    <div class="poi-info">
-                        <p class="poi-addr">地址：{{item.address}}</p>
-                        <p class="poi-tel">电话：{{item.tel}}</p>
-                    </div>
-                    <div class="clear"></div>
-                </div> -->
-            <!-- </div> -->
-        </div>
-
+		<!-- 面板 -->
+		<div id="panel" ref="panel"></div>
 
     </div>
 </template>
@@ -52,13 +41,11 @@
             return {
                 // map:'',
                 currentcity: '', //当前市，用来请求天气
+				citycode:'', //当前市，编码
                 detailaddress: '', //用来存放定位详细地址
                 wether: '', //存放天气天气
-                address: '', //搜索框的值
-                poiArr: [{
-                    address: '111',
-                    tel: '222'
-                }], //左边搜索出来的数组
+
+
             }
         },
         methods: {
@@ -72,16 +59,39 @@
                     // center: [116.397428, 39.90923], //地图中心点
                     zoom: 13 //地图显示的缩放级别
                 })
-                // 文本框的值
-                var searchtext = this.$refs.searchtext;
+
+                
+
+                // 输入提示后搜索
+                var tipinput = this.$refs.tipinput;
                 var autoOptions = {
-                    input: searchtext
+                    input: tipinput
                 };
                 var auto = new AMap.Autocomplete(autoOptions);
                 var placeSearch = new AMap.PlaceSearch({
-                   map: map
-                });  
-                
+                   map: map,
+                   city: "0351", // 限制搜索地点
+                });
+                AMap.event.addListener(auto, "select", select);//注册监听，当选中某条记录时会触发
+                function select(e) {
+                    placeSearch.setCity(e.poi.adcode);
+                    placeSearch.search(e.poi.name);  //关键字查询查询
+                }
+
+				AMap.service(["AMap.PlaceSearch"], function() {
+				//构造地点查询类
+				var placeSearch = new AMap.PlaceSearch({
+					pageSize: 5, // 单页显示结果条数
+					pageIndex: 1, // 页码
+					city: "0351", // 兴趣点城市
+					citylimit: true,  //是否强制限制在设置的城市内搜索
+					map: map, // 展现结果的地图实例
+					panel: "panel", // 结果列表将在此容器中进行展示。
+					autoFitView: true // 是否自动调整地图视野使绘制的 Marker点都处于视口的可见范围
+				});
+				//关键字查询
+				placeSearch.search('太原站');
+    });
             },
             // 定位到精确位置
             getLocation() {
@@ -97,18 +107,19 @@
                     geolocation.getCurrentPosition()
                     AMap.event.addListener(geolocation, 'complete', onComplete)
                     AMap.event.addListener(geolocation, 'error', onError)
-
+                
                     function onComplete(data) {
                         // data是具体的定位信息
                         console.log(data, '获取精确位置')
                         that.detailaddress = data.formattedAddress;
                         that.currentcity=data.addressComponent.city;
+                		 that.citycode=data.addressComponent.citycode;
                         // 天气
                         that.Weather(data.addressComponent.city);
                         // 搜索
                         // that.search(data.addressComponent.city);
                     }
-
+                
                     function onError(data) {
                         // 定位出错
                         console.log(data, '定位出错');
@@ -160,48 +171,7 @@
                     });
                 });
             },
-            // 搜索地址
-            placeSearch(name) {
-                // 文本框的值
-                
-                // 搜索内容
 
-                var panel = this.$refs.panel;
-                var that=this;
-                var MSearch;
-                AMap.service(["AMap.PlaceSearch", "AMap.ToolBar", "AMap.Scale"], function() {
-                    AMap.addControl(new AMap.ToolBar())
-                    AMap.addControl(new AMap.Scale())
-                    MSearch = new AMap.PlaceSearch({
-                        //构造地点查询类
-                        city: name ,//城市
-                        pageSize: 5, // 单页显示结果条数
-                        pageIndex: 1, // 页码
-                        // city: "010", // 兴趣点城市
-                        citylimit: true,  //是否强制限制在设置的城市内搜索
-                        map: that.init, // 展现结果的地图实例
-                        panel: "panel", // 结果列表将在此容器中进行展示。
-                        autoFitView: true // 是否自动调整地图视野使绘制的 Marker点都处于视口的可见范围
-
-                    });
-                    AMap.event.addListener(MSearch, "complete", keywordSearch_CallBack) //返回地点查询结果
-                   
-                    MSearch.search('晋中'); //关键字查询
-                });
-            },
-            keywordSearch_CallBack(){
-
-            },
-            search() {
-                console.log(1111)
-                // this.init()
-                var that=this;
-               // this.mapObj=''
-                // this.mapInit()
-               // this.init();
-               that.placeSearch(that.currentcity)
-                console.log(that.currentcity)
-            }
 
 
         },
@@ -227,15 +197,9 @@
     .search{display: flex;border: 1px solid #25A4BB;margin-bottom: 10px;}
     .search input{height: 40px;width: 30%;}
     .search button{height: 40px;width: 80px;background-color: #BFDD0C;border: none;margin-left: 30px;color: red;}
+    #tipinput{width: 200px;}
     /* 地图容器*/
     #container{width: 100%;height: 100%;position: relative;border: 1px solid #25A4BB;}
-    /* 搜索信息面板*/
-    .amap_lib_placeSearch{position: fixed;background-color: white;overflow-y: auto;width: 280px;top: 100px;height: 400px;border: 1px solid red;}
-    .amap_lib_placeSearch .poibox{border-bottom: 1px solid #eaeaea;cursor: pointer;padding: 5px 0 5px 10px;position: relative;min-height: 35px;}
-    .amap_lib_placeSearch .amap_lib_placeSearch_poi{position: absolute;}
-    .amap_lib_placeSearch .poibox .poi-info{word-break: break-all;margin: 0 0 0 25px;overflow: hidden;}
-    .amap_lib_placeSearch .poibox .poi-info p{color: #999;font-family: Tahoma;line-height: 20px;font-size: 12px;}
-    .amap_lib_placeSearch .poibox .poi-title{margin-left: 25px;font-size: 13px;overflow: hidden;}
-    #panel .amap-call{background-color: #009cf9;border-top-left-radius: 4px;border-top-right-radius: 4px;}
-    #panel .amap-lib-driving{border-bottom-left-radius: 4px;border-bottom-right-radius: 4px;overflow: hidden;}
+    /* 面板 */
+    #panel {position: absolute;background-color: white;max-height: 90%;overflow-y: auto;top: 10px;right: 10px;width: 280px;}
 </style>
